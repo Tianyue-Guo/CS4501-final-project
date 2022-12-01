@@ -8,3 +8,8 @@ class Message(models.Model):
 
     class Meta:
         ordering = ('date_added',)
+
+class World(models.Model):
+    roomname = models.CharField(max_length=200)
+    username = models.CharField(max_length=200)
+    securitylevel = models.CharField(max_length=200)

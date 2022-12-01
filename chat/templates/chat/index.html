@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+{% bootstrap_messages %}
 <html>
     <head>
         <meta charset="utf-8"/>
@@ -9,6 +12,7 @@
 
     <body>
         <section class="section">
+            
             <div class="container">
                 <div class="columns is-multiline">
                     <div class="column is-6 is-offset-3 mb-6">
@@ -25,11 +29,13 @@
                     </div>
 
                     <div class="column is-4 is-offset-4">
+                        <form action="{% url 'chat:index'%}" method="POST" style="text-align:center">
+                            {% csrf_token %}
                         <div class="field">
                             <label>Room name</label>
 
                             <div class="control">
-                                <input class="input" type="text" placeholder="Room name" id="room-name-input">
+                                <input class="input" name="roomname" type="text" placeholder="Room name" id="roomname" required>
                             </div>
                         </div>
 
@@ -37,29 +43,52 @@
                             <label>Username</label>
 
                             <div class="control">
-                                <input class="input" type="text" placeholder="Username" id="username-input">
+                                <input class="input" name="username" type="text" placeholder="Username" id="username" required>
                             </div>
                         </div>
 
+                        <!-- <div class="field">
+                            <label>Security Level</label>
+
+                            <div class="control">
+                                <input class="input" name="securitylevel" type="text" placeholder="Security Level(0-3)" id="securitylevel">
+                            </div>
+                        </div> -->
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                              <label class="input-group-text" for="securitylevel">Security Level</label>
+                            </div>
+                            <select class="custom-select" id="securitylevel" name="securitylevel" required>
+
+                              <option value="0">0</option>
+                              <option value="1">1</option>
+                              <option value="2">2</option>
+                              <option value="3">3</option>
+                            </select>
+                        </div>
                         <div class="field">
                             <div class="control">
-                                <a class="button is-info" id="room-name-submit">Submit</a>
+                                <input type="submit" value="Submit" class="btn btn-primary">
                             </div>
                         </div>
+                        </form>
                     </div>
+                    
                 </div>
             </div>
+
         </section>
 
         <script>
             document.querySelector('#room-name-input').focus();
 
-            document.querySelector('#room-name-submit').onclick = function(e) {
-                var roomName = document.querySelector('#room-name-input').value;
-                var userName = document.querySelector('#username-input').value;
+            // document.querySelector('#room-name-submit').onclick = function(e) {
+            //     var roomName = document.querySelector('#room-name-input').value;
+            //     var userName = document.querySelector('#username-input').value;
+            //     var securityLevel = document.querySelector('#security-level-input').value;
 
-                window.location.replace(roomName + '/?username=' + userName);
-            };
+            //     window.location.replace(roomName + '/?username=' + userName);
+            // };
         </script>
     </body>
 </html>
