@@ -5,7 +5,8 @@ from asgiref.sync import sync_to_async
 from .models import Message
 from .models import World
 from .rsa import decrypt
-
+from threading import Thread
+import concurrent.futures
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -30,11 +31,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    # async def check_key(self):
-    #     World_obj = World.objects.get(roomname = room)
-    #     privatekey1 = getattr(World_obj, 'privatekey1')
-    #     privatekey2 = getattr(World_obj, 'privatekey2')
-    #     sxzxz
+
 
 
     # Receive message from web socket
@@ -47,8 +44,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # await self.fetch_key(room)
         # key = asyncio.gather(self.fetch_key(room))
         # print(key)
+
+            #print("ahhh return: ", return_value)
         await self.save_message(username, room, message)
 
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(self.decryption, username, room, message)
+            message = future.result()
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -72,19 +74,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def save_message(self, username, room, message):
-        World_obj = World.objects.get(roomname = room, username=username)
-        #print("obtained objects: ", World_obj)
-        privatekey1 = getattr(World_obj, 'privatekey1')
-        privatekey2 = getattr(World_obj, 'privatekey2')
-        #print(message)
-        message = decrypt(message, (privatekey1, privatekey2))
-        #print("message result: ", message)
         Message.objects.create(username=username, room=room, content=message)
     
-    # async def fetch_key(self, room):
-    #     World_obj = World.objects.get(roomname = room)
-    #     print("obtained objects: ", World_obj)
-    #     privatekey1 = getattr(World_obj, 'privatekey1')
-    #     privatekey2 = getattr(World_obj, 'privatekey2')
-    #     print("Look at this", privatekey1, privatekey2)
-    #     return (privatekey1, privatekey2)
+    def decryption(self, username, room, message):
+        World_obj = World.objects.get(roomname = room, username=username)
+        # print("obtained objects: ", World_obj)
+        privatekey1 = getattr(World_obj, 'privatekey1')
+        privatekey2 = getattr(World_obj, 'privatekey2')
+        # print("Look at this", privatekey1, privatekey2)
+        message = decrypt(message, (privatekey1, privatekey2))
+        return message
