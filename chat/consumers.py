@@ -2,10 +2,15 @@ import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-
 from .models import Message
+from .models import World
+from .rsa import decrypt
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
+
+
+
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
@@ -24,14 +29,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-    
+
+    # async def check_key(self):
+    #     World_obj = World.objects.get(roomname = room)
+    #     privatekey1 = getattr(World_obj, 'privatekey1')
+    #     privatekey2 = getattr(World_obj, 'privatekey2')
+    #     sxzxz
+
+
     # Receive message from web socket
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data['message']
         username = data['username']
         room = data['room']
-
+        # print("original message: ", message)
+        # await self.fetch_key(room)
+        # key = asyncio.gather(self.fetch_key(room))
+        # print(key)
         await self.save_message(username, room, message)
 
         # Send message to room group
@@ -57,4 +72,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def save_message(self, username, room, message):
+        World_obj = World.objects.get(roomname = room, username=username)
+        #print("obtained objects: ", World_obj)
+        privatekey1 = getattr(World_obj, 'privatekey1')
+        privatekey2 = getattr(World_obj, 'privatekey2')
+        #print(message)
+        message = decrypt(message, (privatekey1, privatekey2))
+        #print("message result: ", message)
         Message.objects.create(username=username, room=room, content=message)
+    
+    # async def fetch_key(self, room):
+    #     World_obj = World.objects.get(roomname = room)
+    #     print("obtained objects: ", World_obj)
+    #     privatekey1 = getattr(World_obj, 'privatekey1')
+    #     privatekey2 = getattr(World_obj, 'privatekey2')
+    #     print("Look at this", privatekey1, privatekey2)
+    #     return (privatekey1, privatekey2)
