@@ -18,16 +18,29 @@ def index(request):
     if request.method == "POST":
         print(request.POST)
         obj = World()
-        obj.roomname = request.POST['roomname']
-        obj.username = request.POST['username']
-        obj.securitylevel = request.POST['securitylevel']
-        public, private = generate_key()
-        obj.privatekey1 = private[0]
-        obj.privatekey2 = private[1]
-        obj.publickey1 = public[0]
-        obj.publickey2 = public[1]
-        print(obj.privatekey1, obj.privatekey2, obj.publickey1, obj.publickey2)
-        obj.save()
+        if not World.objects.filter(roomname=request.POST['roomname']):
+
+        
+            obj.roomname = request.POST['roomname']
+            obj.username = request.POST['username']
+            obj.securitylevel = request.POST['securitylevel']
+            public, private = generate_key()
+            obj.privatekey1 = private[0]
+            obj.privatekey2 = private[1]
+            obj.publickey1 = public[0]
+            obj.publickey2 = public[1]
+        #print(obj.privatekey1, obj.privatekey2, obj.publickey1, obj.publickey2)
+            obj.save()
+        else:
+            obj.roomname = request.POST['roomname']
+            obj.username = request.POST['username']
+            obj.securitylevel = request.POST['securitylevel']
+            obj.privatekey1 = World.objects.first().privatekey1
+            obj.privatekey2 = World.objects.first().privatekey2
+            obj.publickey1 = World.objects.first().publickey1
+            obj.publickey2 = World.objects.first().publickey2
+        #print(obj.privatekey1, obj.privatekey2, obj.publickey1, obj.publickey2)
+            obj.save()
         return HttpResponseRedirect(obj.roomname + '/?username=' + obj.username)
         #obj.roomname = request.POST
     return render(request, 'chat/index.html')
@@ -42,11 +55,9 @@ def room(request, room_name):
     publickey2 = getattr(World_obj, 'publickey2')
     privatekey1 = getattr(World_obj, 'privatekey1')
     privatekey2 = getattr(World_obj, 'privatekey2')
+    for m in messages:
+        m.content = decrypt(m.content, (privatekey1, privatekey2))
 
-    if len(messages) > 0:
-        privatekey1 = 0
-        privatekey2 = 0
-        
     #field_object = World._meta.get_field('securitylevel')
     World_obj_security_level= getattr(World_obj, 'securitylevel')
     # print("obtained objects: ", World_obj, World_obj_field_value)
