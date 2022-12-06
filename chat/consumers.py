@@ -81,6 +81,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # print("obtained objects: ", World_obj)
         privatekey1 = getattr(World_obj, 'privatekey1')
         privatekey2 = getattr(World_obj, 'privatekey2')
+        World_obj_security_level= getattr(World_obj, 'securitylevel')
+        print("security level!!!: ", World_obj_security_level)
+        if World_obj_security_level != "0":
         # print("Look at this", privatekey1, privatekey2)
-        message = decrypt(message, (privatekey1, privatekey2))
+            message = decrypt(message, (privatekey1, privatekey2))
         return message
