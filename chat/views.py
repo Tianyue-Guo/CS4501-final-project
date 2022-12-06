@@ -55,11 +55,14 @@ def room(request, room_name):
     publickey2 = getattr(World_obj, 'publickey2')
     privatekey1 = getattr(World_obj, 'privatekey1')
     privatekey2 = getattr(World_obj, 'privatekey2')
-    for m in messages:
-        m.content = decrypt(m.content, (privatekey1, privatekey2))
+    World_obj_security_level= getattr(World_obj, 'securitylevel')
+    print("security level: ", World_obj_security_level)
+    if World_obj_security_level != "0":
+        for m in messages:
+            m.content = decrypt(m.content, (privatekey1, privatekey2))
 
     #field_object = World._meta.get_field('securitylevel')
-    World_obj_security_level= getattr(World_obj, 'securitylevel')
+    
     # print("obtained objects: ", World_obj, World_obj_field_value)
     
     return render(request, 'chat/room' + World_obj_security_level + '.html', {'worldobj': World_obj, 'room_name': room_name, 'username': username, 'messages': messages, 'publickey1': publickey1, 'publickey2': publickey2, 'privatekey1': privatekey1, 'privatekey2': privatekey2})
