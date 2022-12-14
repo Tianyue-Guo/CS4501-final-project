@@ -46,7 +46,12 @@
                                 <a class="button is-info" id="chat-message-submit">Submit</a>
                             </div>
                         </div>
+                        <a
+                        href="{% url 'chat:index'%}"
+                        class="btn btn-primary"
 
+                        >Return</a
+                      >
                         <small class="has-text-grey-light">Your username: {{ username }}</small>
                         <small class="has-text-grey-light">Key : {{ publickey2 }}</small>
                     </div>
