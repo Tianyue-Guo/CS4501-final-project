@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-{% load bootstrap5 %}{% bootstrap_css %} 
+{% load bootstrap5 %}{% bootstrap_css %}
 <html>
     <head>
         <meta charset="utf-8"/>
+        <meta http-equiv="refresh" content="10">
         <title>Chatty</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
     </head>
@@ -29,7 +30,7 @@
                             </div>
                         <!-- </section> -->
                     </div>
-                    
+
                     <div class="column is-6 is-offset-3">
                         <div class="box">
                             <div id="chat-messages" style="max-height: 300px; overflow-y: scroll;">{% for m in messages %}<b>{{ m.username }}</b>: {{ m.content }}<br>{% endfor %}</div>
@@ -48,6 +49,7 @@
                         </div>
 
                         <small class="has-text-grey-light">Your username: {{ username }}</small>
+                        <small class="has-text-grey-light">Key : {{ publickey2 }}</small>
                     </div>
                 </div>
             </div>
@@ -55,6 +57,10 @@
 
        {{ room_name|json_script:"json-roomname" }}
        {{ username|json_script:"json-username" }}
+       {{ publickey1|json_script:"json-publickey1" }}
+       {{ publickey2|json_script:"json-publickey2" }}
+       {{ privatekey1|json_script:"json-privatekey1" }}
+       {{ privatekey2|json_script:"json-privatekey2" }}
 
         <script>
             function scrollToBottom() {
@@ -92,18 +98,52 @@
             chatSocket.onclose = function(e) {
                 console.log('The socket close unexpectadly');
             };
+            function expmod( base, exp, mod ){
+                if (exp == 0) return 1;
+                if (exp % 2 == 0){
+                    return Math.pow( expmod( base, (exp / 2), mod), 2) % mod;
+                }
+                else {
+                    return (base * expmod( base, (exp - 1), mod)) % mod;
+                }
+            }
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
 
             document.querySelector('#chat-message-submit').onclick = function(e) {
                 const messageInputDom = document.querySelector('#chat-message-input');
                 const message = messageInputDom.value;
 
+                const publickey1 = JSON.parse(document.getElementById('json-publickey1').textContent);
+                const publickey2 = JSON.parse(document.getElementById('json-publickey2').textContent);
+                // const privatekey1 = JSON.parse(document.getElementById('json-privatekey1').textContent);
+                // const privatekey2 = JSON.parse(document.getElementById('json-privatekey2').textContent);
+                var cipher_M = []
+                for (let i = 0; i < message.length; i++) {
+                    var curr_ascii = message[i].charCodeAt(0);
+                    //console.log(curr_ascii, publickey1, publickey2)
+                    var encrypted_char = expmod(curr_ascii, publickey1, publickey2)
+                    //console.log(encrypted_char)
+                    cipher_M.push(encrypted_char)
+                }
+                encrypted_message =  cipher_M.join('#')
+                // console.log(encryped_message)
+
                 chatSocket.send(JSON.stringify({
-                    'message': message,
+                    'message': encrypted_message,
                     'username': userName,
-                    'room': roomName,
+                    'room': roomName
+                    // 'privatekey1': privatekey1,
+                    // 'privatekey2'
                 }));
 
+
                 messageInputDom.value = '';
+
+                setTimeout(function(){
+                window.location.reload();
+                }, 5000);
             };
         </script>
     </body>

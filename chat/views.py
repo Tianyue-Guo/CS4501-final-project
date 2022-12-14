@@ -20,7 +20,7 @@ def index(request):
         obj = World()
         if not World.objects.filter(roomname=request.POST['roomname']):
 
-        
+
             obj.roomname = request.POST['roomname']
             obj.username = request.POST['username']
             obj.securitylevel = request.POST['securitylevel']
@@ -59,10 +59,13 @@ def room(request, room_name):
     print("security level: ", World_obj_security_level)
     if World_obj_security_level != "0":
         for m in messages:
-            m.content = decrypt(m.content, (privatekey1, privatekey2))
+            try:
+                m.content = decrypt(m.content, (privatekey1, privatekey2))
+            except:
+                continue
 
     #field_object = World._meta.get_field('securitylevel')
-    
+
     # print("obtained objects: ", World_obj, World_obj_field_value)
-    
+
     return render(request, 'chat/room' + World_obj_security_level + '.html', {'worldobj': World_obj, 'room_name': room_name, 'username': username, 'messages': messages, 'publickey1': publickey1, 'publickey2': publickey2, 'privatekey1': privatekey1, 'privatekey2': privatekey2})

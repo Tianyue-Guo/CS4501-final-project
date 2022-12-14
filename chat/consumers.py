@@ -1,12 +1,15 @@
 import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.http import HttpResponseRedirect
+
 from asgiref.sync import sync_to_async
 from .models import Message
 from .models import World
 from .rsa import decrypt
 from threading import Thread
 import concurrent.futures
+import time
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -23,7 +26,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
-    
+
     async def disconnect(self, close_code):
         # Leave room
         await self.channel_layer.group_discard(
@@ -48,9 +51,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             #print("ahhh return: ", return_value)
         await self.save_message(username, room, message)
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(self.decryption, username, room, message)
+        with concurrent.futures.ThreadPoolExecutor() as executor1:
+
+            future = executor1.submit(self.decryption, username, room, message)
             message = future.result()
+
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -60,7 +65,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'username': username
             }
         )
-    
+
+        with concurrent.futures.ThreadPoolExecutor() as executor2:
+            future = executor2.submit(self.burn,username,room)
+
+
     # Receive message from room group
     async def chat_message(self, event):
         message = event['message']
@@ -72,11 +81,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'username': username
         }))
 
+
     @sync_to_async
     def save_message(self, username, room, message):
         Message.objects.create(username=username, room=room, content=message)
-    
+
     def decryption(self, username, room, message):
+
         World_obj = World.objects.get(roomname = room, username=username)
         # print("obtained objects: ", World_obj)
         privatekey1 = getattr(World_obj, 'privatekey1')
@@ -85,5 +96,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print("security level!!!: ", World_obj_security_level)
         if World_obj_security_level != "0":
         # print("Look at this", privatekey1, privatekey2)
-            message = decrypt(message, (privatekey1, privatekey2))
+            try:
+                message = decrypt(message, (privatekey1, privatekey2))
+            except:
+                return message
         return message
+
+    def burn(self, username, room):
+        World_obj = World.objects.get(roomname = room, username=username)
+        World_obj_security_level= getattr(World_obj, 'securitylevel')
+        if World_obj_security_level != "2":
+            return
+        Message.objects.filter(username = username, room = room).update(content = "the message is burned!")
+        print("the message is burned")
+
+
+
