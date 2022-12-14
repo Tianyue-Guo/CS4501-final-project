@@ -49,13 +49,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # print(key)
 
             #print("ahhh return: ", return_value)
-        await self.save_message(username, room, message)
+
 
         with concurrent.futures.ThreadPoolExecutor() as executor1:
 
             future = executor1.submit(self.decryption, username, room, message)
             message = future.result()
-
+        await self.save_message(username, room, message)
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,

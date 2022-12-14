@@ -28,7 +28,7 @@
                                 </p>
 
                                 <p class="subtitle">
-                                  Paste the link to Tor Browser: 
+                                  Paste the link to Tor Browser
                                 </p>
                                 <a href="https://www.torproject.org/download/">
                                     <button class="button is-dark">Open Secret Chat on Tor</button>
@@ -53,7 +53,12 @@
                                 <a class="button is-info" id="chat-message-submit">Submit</a>
                             </div>
                         </div>
+                        <a
+                        href="{% url 'chat:index'%}"
+                        class="btn btn-primary"
 
+                        >Return</a
+                      >
                         <small class="has-text-grey-light">Your username: {{ username }}</small>
                         <small class="has-text-grey-light">Key : {{ publickey2 }}</small>
                     </div>
